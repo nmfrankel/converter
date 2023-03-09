@@ -6,3 +6,5 @@ export const load = (async ({ setHeaders }) => {
 		'Cross-Origin-Embedder-Policy': 'require-corp'
 	});
 }) satisfies LayoutServerLoad;
+
+export const prerender = true;
