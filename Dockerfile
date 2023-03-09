@@ -3,8 +3,8 @@ FROM node:18-alpine AS build
 WORKDIR /app
 COPY . .
 
-RUN npm install
-RUN npm build
+RUN npm i
+RUN npm run build
 
 CMD ["node", "build/."]
 
