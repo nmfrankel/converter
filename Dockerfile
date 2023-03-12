@@ -1,24 +1,16 @@
 FROM node:18-alpine AS build
 
 WORKDIR /app
+
 COPY . .
 
-RUN npm i
-RUN npm run build -s
+# RUN npm install && npm run build
+RUN npm install
 
-CMD ["node", "build/."]
+# Add Non-root user
+RUN useradd -m myuser
+USER myuser
 
-# FROM nginx:1.18-alpine AS deploy-static
+EXPOSE 80
 
-# WORKDIR /usr/share/nginx/html
-# RUN rm -rf ./*
-# COPY --from=build /app/build .
-
-# ENTRYPOINT ["nginx", "-g", "daemon off;"]
-
-
-# FROM node:18-alpine as deploy-node
-
-# WORKDIR /app
-# # RUN rm -rf ./*
-# COPY --from=build /app .
+CMD ["npm", "run", "dev", "--", "--port=${PORT:80}"]
