@@ -28,7 +28,6 @@
 		showProgress = false;
 
 	const ffmpeg = createFFmpeg({
-		// 	corePath: 'https://unpkg.com/@ffmpeg/core',
 		log: true,
 		progress: ({ ratio }) => {
 			if (ratio >= 0) {
@@ -38,7 +37,6 @@
 	});
 
 	const checkIsReady = setInterval(() => {
-		console.log('checking load')
 		if (!ffmpeg.isLoaded() && message === 'Starting') {
 			message = 'Loading';
 			ffmpeg.load();
@@ -49,8 +47,11 @@
 		}
 	}, 1000)
 
-	const evaluate = () => {
-
+	const evaluate = async () => {
+		const { name } = files[0];
+		ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
+		const file_details = await ffmpeg.run('-i', name);
+		console.log(file_details)
 	}
 
 	const clearMemory = () => {
@@ -75,14 +76,15 @@
 		// let flags = options.disableVideo.value? options.disableVideo.flag: ''
 		const { name } = files[0];
 
-		message = 'Trimming started';
+		// message = 'Trimming started';
 		ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
 		// await ffmpeg.run('-i', name, '-an', '-ss', '0', '-to', '2', 'output.mp4');
-		const flags = `-i ${name} -map=0:a output${outputFiletype}`
-		console.log(flags)
-		await ffmpeg.run(flags);
 
-		message = 'Trimming finished';
+		// const flags = `-i ${name} -map=0:a output${outputFiletype}`
+		// console.log(flags)
+		// await ffmpeg.run(flags);
+
+		// message = 'Trimming finished';
 		const data = ffmpeg.FS('readFile', 'output' + outputFiletype);
 		video.src = URL.createObjectURL(new Blob([data.buffer], {
 			type: !options.disableVideo.value? 'video/mp4': 'audio/mp3'
@@ -102,23 +104,24 @@
 		<div>
 			<input id={'_' + random} type="checkbox" bind:checked={options[key].value} />
 			<label for={'_' + random}>{key}</label>
-			<!-- {value} -->
 		</div>
 	{/each}
-
+	
+	<input id="files" class="hidden" type="file" disabled={!isReady} multiple bind:files on:change={evaluate} />
 	<label for="files" style="cursor: pointer;">
 		<h3>{files?.[0].name ?? 'Select file to convert'}</h3>
 	</label>
-	<input id="files" class="hidden" type="file" multiple bind:files on:change={evaluate} />
 	<button disabled={!isReady} on:click={transcode}>Convert</button>
 
-	<div style='margin-top: 2rem;'>
+	<div style='margin-top: 1rem;'>
 		{#if showProgress}
 			{progress.toFixed(2)}% done
 		{:else}
 			{message}
 		{/if}
 	</div>
+
+	<!-- for development -->
 	<div style='margin-top: 2rem;'>
 		{JSON.stringify(fileDetails, null, "\t")}
 	</div>
@@ -135,6 +138,9 @@
 		padding: 2rem;
 		border-radius: 1.5rem;
 		background-color: #f0f5fa;
+	}
+	input:disabled + label {
+		opacity: .5;
 	}
 	label {
 		user-select: none;
